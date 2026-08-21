@@ -8,3 +8,4 @@ jobs:
     environment: prod
     steps:
       - run: echo "DEPLOY-REACHED ref=$GITHUB_REF sha=$GITHUB_SHA"
+      - run: echo control-run
