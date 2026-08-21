@@ -1,0 +1,10 @@
+name: env-gate-probe
+on:
+  push:
+    branches: [feature-x]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - run: echo "DEPLOY-REACHED ref=$GITHUB_REF sha=$GITHUB_SHA"
