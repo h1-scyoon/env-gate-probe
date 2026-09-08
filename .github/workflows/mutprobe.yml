@@ -1,0 +1,24 @@
+name: mutprobe
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+        run: |
+          set +e
+          run_m () {
+            printf '%s' "$2" > /tmp/m.json
+            echo "--- $1"
+            curl -s -H "Authorization: bearer $TK" -H "Content-Type: application/json" --data-binary @/tmp/m.json https://api.github.com/graphql | head -c 400
+            echo
+          }
+          run_m "deleteBranchProtectionRule (integrity!)" '{"query":"mutation{deleteBranchProtectionRule(input:{branchProtectionRuleId:\"BPR_kwDOSaj3X84E8IXY\"}){clientMutationId}}"}'
+          run_m "updateRepository (settings)"            '{"query":"mutation{updateRepository(input:{repositoryId:\"R_kgDOSaj3Xw\",description:\"MUTPROBE-pwned\"}){repository{description}}}"}'
+          run_m "createIssue"                            '{"query":"mutation{createIssue(input:{repositoryId:\"R_kgDOSaj3Xw\",title:\"MUTPROBE-issue\"}){issue{number}}}"}'
+          run_m "createRef"                              '{"query":"mutation{createRef(input:{repositoryId:\"R_kgDOSaj3Xw\",name:\"refs/heads/mutprobe\",oid:\"0000000000000000000000000000000000000000\"}){ref{name}}}"}'
+          run_m "createBranchProtectionRule"             '{"query":"mutation{createBranchProtectionRule(input:{repositoryId:\"R_kgDOSaj3Xw\",pattern:\"MUTPROBE/*\"}){branchProtectionRule{id}}}"}'
+          run_m "updateSubscription"                     '{"query":"mutation{updateSubscription(input:{subscribableId:\"R_kgDOSaj3Xw\",state:SUBSCRIBED}){subscribable{id}}}"}'
+          run_m "createRepositoryRuleset"                '{"query":"mutation{createRepositoryRuleset(input:{sourceId:\"R_kgDOSaj3Xw\",name:\"mutprobe\",target:BRANCH,enforcement:ACTIVE,conditions:{refName:{include:[\"~ALL\"],exclude:[]}},rules:[{type:DELETION}]}){ruleset{id}}}"}'
