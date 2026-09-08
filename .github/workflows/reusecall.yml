@@ -1,0 +1,5 @@
+name: reusecall
+on: workflow_dispatch
+jobs:
+  call:
+    uses: h1-scyoon/reusepriv/.github/workflows/reusable.yml@main
