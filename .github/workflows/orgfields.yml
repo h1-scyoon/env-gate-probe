@@ -1,0 +1,21 @@
+name: orgfields
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+        run: |
+          set +e
+          Q='{"query":"{organization(login:\"f82-poc-org\"){anyPinnableItems archivedAt avatarUrl createdAt databaseId description descriptionHTML email estimatedNextSponsorsPayoutInCents hasSponsorsListing id ipAllowListEnabledSetting ipAllowListForInstalledAppsEnabledSetting isSponsoringViewer isVerified location login membersCanForkPrivateRepositories monthlyEstimatedSponsorsIncomeInCents name newTeamResourcePath newTeamUrl notificationDeliveryRestrictionEnabledSetting organizationBillingEmail pinnedItemsRemaining projectsResourcePath projectsUrl requiresTwoFactorAuthentication resourcePath teamsResourcePath teamsUrl totalSponsorshipAmountAsSponsorInCents twitterUsername updatedAt url viewerCanAdminister viewerCanChangePinnedItems viewerCanCreateRepositories viewerCanCreateTeams viewerCanSponsor viewerIsAMember viewerIsFollowing viewerIsSponsoring webCommitSignoffRequired websiteUrl}}"}'
+          echo "$Q" > /tmp/q.json
+          echo "=== BOT identity ==="
+          curl -s -H "Authorization: bearer $TK" -H "Content-Type: application/json" \
+            -d '{"query":"{viewer{login}}"}' https://api.github.com/graphql
+          echo
+          echo "=== BOT view of Organization scalar fields ==="
+          curl -s -H "Authorization: bearer $TK" -H "Content-Type: application/json" \
+            --data-binary @/tmp/q.json https://api.github.com/graphql
+          echo
