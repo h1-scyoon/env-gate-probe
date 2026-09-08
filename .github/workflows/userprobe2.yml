@@ -1,0 +1,18 @@
+name: userprobe2
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+        run: |
+          set +e
+          U='user(login:\"h1-scyoon\")'
+          cat > /tmp/q.json <<'EOF'
+          {"query":"{ a1: user(login:\"h1-scyoon\"){organizations(first:10){totalCount nodes{login}}} a2: user(login:\"h1-scyoon\"){email} a3: user(login:\"h1-scyoon\"){name login} a4: user(login:\"h1-scyoon\"){repositories(first:5,privacy:PRIVATE){totalCount nodes{name}}} a5: user(login:\"h1-scyoon\"){repositoriesContributedTo(first:5){totalCount}} a6: user(login:\"h1-scyoon\"){starredRepositories(first:3){totalCount}} a7: user(login:\"h1-scyoon\"){watching(first:3){totalCount}} a8: user(login:\"h1-scyoon\"){followers{totalCount}} a9: user(login:\"h1-scyoon\"){gists(first:3){totalCount}} a10: user(login:\"h1-scyoon\"){publicKeys(first:3){totalCount nodes{key}}} a11: user(login:\"h1-scyoon\"){organizationVerifiedDomainEmails(login:\"f82-poc-org\")} a12: user(login:\"h1-scyoon\"){isViewer} }"}
+          EOF
+          echo "=== BOT (shares nothing with h1-scyoon) ==="
+          curl -s -H "Authorization: bearer $TK" -H "Content-Type: application/json" --data-binary @/tmp/q.json https://api.github.com/graphql
+          echo
