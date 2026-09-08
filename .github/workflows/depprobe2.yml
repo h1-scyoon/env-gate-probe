@@ -1,0 +1,23 @@
+name: depprobe2
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+        run: |
+          set +e
+          curl -s -H "Authorization: token $TK" -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/h1-scyoon/env-gate-probe/issues/4/dependencies/blocked_by > /tmp/d.json
+          echo "bytes=$(wc -c < /tmp/d.json)"
+          echo "entries=$(python3 -c 'import json;print(len(json.load(open("/tmp/d.json"))))')"
+          echo "titles:"
+          python3 -c "
+import json
+for i in json.load(open('/tmp/d.json')):
+    r=(i.get('repository') or {})
+    print('   ', i.get('title'), '| repo:', r.get('full_name'), '| private:', r.get('private'))
+"
+          echo "DEPSECRET occurrences in the raw body: $(grep -c DEPSECRET /tmp/d.json)"
