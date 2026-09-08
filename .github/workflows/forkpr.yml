@@ -1,0 +1,26 @@
+name: forkpr
+on: pull_request
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: what does a FORK PR workflow actually get?
+        env:
+          TK: ${{ github.token }}
+          S: ${{ secrets.FORKSECRET }}
+        run: |
+          set +e
+          echo "event=$GITHUB_EVENT_NAME  repo=$GITHUB_REPOSITORY  head=$GITHUB_HEAD_REF"
+          echo "secret_len=${#S}   (0 means secrets correctly withheld from fork PRs)"
+          echo "=== token write attempts against the BASE repo ==="
+          C=$(curl -s -o /tmp/o1 -w "%{http_code}" -X POST -H "Authorization: token $TK" -H "Accept: application/vnd.github+json" https://api.github.com/repos/h1-scyoon/env-gate-probe/issues -d '{"title":"FORKPR-WRITE-PROBE"}')
+          echo "  POST base /issues -> $C"
+          C=$(curl -s -o /tmp/o2 -w "%{http_code}" -X PUT -H "Authorization: token $TK" -H "Accept: application/vnd.github+json" https://api.github.com/repos/h1-scyoon/env-gate-probe/contents/forkpr.txt -d '{"message":"m","content":"eA==","branch":"main"}')
+          echo "  PUT base /contents -> $C"
+          C=$(curl -s -o /tmp/o3 -w "%{http_code}" -H "Authorization: token $TK" https://api.github.com/repos/h1-scyoon/env-gate-probe/actions/secrets)
+          echo "  GET base /actions/secrets -> $C"
+          echo "=== effective token permissions ==="
+          curl -s -I -H "Authorization: token $TK" https://api.github.com/repos/h1-scyoon/env-gate-probe | grep -i "x-oauth-scopes\|x-accepted" | head -3
