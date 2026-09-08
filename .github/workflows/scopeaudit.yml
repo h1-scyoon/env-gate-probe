@@ -1,0 +1,62 @@
+name: scopeaudit
+on: workflow_dispatch
+jobs:
+  contents_read:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - env: {TK: "${{ github.token }}"}
+        run: |
+          set +e
+          R=h1-scyoon/env-gate-probe
+          t(){ C=$(curl -s -m 15 -o /tmp/o -w "%{http_code}" -X "$1" -H "Authorization: token $TK" \
+                 -H "Accept: application/vnd.github+json" "https://api.github.com$2" ${3:+-d "$3"})
+               echo "[$C] $1 $2"; case $C in 2*) echo "    !!! WRITE SUCCEEDED WITH contents:read -> $(head -c 150 /tmp/o)";; esac; }
+          echo "=== contents:read attempting CONTENTS WRITES ==="
+          t PUT  "/repos/$R/contents/scopeaudit-a.txt" '{"message":"m","content":"eA==","branch":"main"}'
+          t POST "/repos/$R/git/refs" '{"ref":"refs/heads/scopeaudit-b","sha":"'"$GITHUB_SHA"'"}'
+          t POST "/repos/$R/git/blobs" '{"content":"x","encoding":"utf-8"}'
+          t POST "/repos/$R/releases" '{"tag_name":"scopeaudit-c"}'
+          t POST "/repos/$R/dispatches" '{"event_type":"scopeaudit"}'
+          t POST "/repos/$R/merge-upstream" '{"branch":"main"}'
+          t POST "/repos/$R/forks" ''
+          echo "=== contents:read attempting OTHER-SCOPE WRITES ==="
+          t POST "/repos/$R/issues" '{"title":"scopeaudit-issue"}'
+          t POST "/repos/$R/statuses/$GITHUB_SHA" '{"state":"success","context":"scopeaudit"}'
+          t POST "/repos/$R/deployments" '{"ref":"main","environment":"scopeaudit"}'
+          t POST "/repos/$R/labels" '{"name":"scopeaudit","color":"ededed"}'
+  issues_read:
+    runs-on: ubuntu-latest
+    permissions: {issues: read}
+    steps:
+      - env: {TK: "${{ github.token }}"}
+        run: |
+          set +e
+          R=h1-scyoon/env-gate-probe
+          t(){ C=$(curl -s -m 15 -o /tmp/o -w "%{http_code}" -X "$1" -H "Authorization: token $TK" \
+                 -H "Accept: application/vnd.github+json" "https://api.github.com$2" ${3:+-d "$3"})
+               echo "[$C] $1 $2"; case $C in 2*) echo "    !!! WRITE SUCCEEDED WITH issues:read -> $(head -c 150 /tmp/o)";; esac; }
+          echo "=== issues:read attempting ISSUE WRITES ==="
+          t POST  "/repos/$R/issues" '{"title":"scopeaudit-ir"}'
+          t POST  "/repos/$R/issues/1/comments" '{"body":"scopeaudit"}'
+          t POST  "/repos/$R/issues/1/labels" '{"labels":["bug"]}'
+          t POST  "/repos/$R/issues/1/reactions" '{"content":"+1"}'
+          t PATCH "/repos/$R/issues/1" '{"state":"open"}'
+          t POST  "/repos/$R/issues/1/sub_issues" '{"sub_issue_id":1}'
+          t POST  "/repos/$R/milestones" '{"title":"scopeaudit-ms"}'
+  pr_read:
+    runs-on: ubuntu-latest
+    permissions: {pull-requests: read}
+    steps:
+      - env: {TK: "${{ github.token }}"}
+        run: |
+          set +e
+          R=h1-scyoon/env-gate-probe
+          t(){ C=$(curl -s -m 15 -o /tmp/o -w "%{http_code}" -X "$1" -H "Authorization: token $TK" \
+                 -H "Accept: application/vnd.github+json" "https://api.github.com$2" ${3:+-d "$3"})
+               echo "[$C] $1 $2"; case $C in 2*) echo "    !!! WRITE SUCCEEDED WITH pull-requests:read -> $(head -c 150 /tmp/o)";; esac; }
+          echo "=== pull-requests:read attempting PR WRITES ==="
+          t POST "/repos/$R/pulls" '{"title":"scopeaudit-pr","head":"main","base":"main"}'
+          t POST "/repos/$R/issues/1/comments" '{"body":"scopeaudit-pr"}'
+          t POST "/repos/$R/pulls/1/requested_reviewers" '{"reviewers":["h1-scyoon"]}'
+          t POST "/repos/$R/pulls/1/reviews" '{"event":"COMMENT","body":"x"}'
