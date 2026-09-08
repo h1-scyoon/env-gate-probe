@@ -1,0 +1,23 @@
+name: repofields
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+          FLIST: "allowUpdateBranch archivedAt autoMergeAllowed createdAt databaseId deleteBranchOnMerge description descriptionHTML diskUsage forkCount forkingAllowed hasDiscussionsEnabled hasIssuesEnabled hasProjectsEnabled hasPullRequestsEnabled hasSponsorshipsEnabled hasVulnerabilityAlertsEnabled hasWikiEnabled homepageUrl id isArchived isBlankIssuesEnabled isDisabled isEmpty isFork isInOrganization isLocked isMirror isPrivate isSecurityPolicyEnabled isTemplate isUserConfigurationRepository issueCreationPolicy lockReason mergeCommitAllowed mergeCommitMessage mergeCommitTitle mirrorUrl name nameWithOwner openGraphImageUrl projectsResourcePath projectsUrl pullRequestCreationPolicy pushedAt rebaseMergeAllowed resourcePath securityPolicyUrl shortDescriptionHTML squashMergeAllowed squashMergeCommitMessage squashMergeCommitTitle sshUrl stargazerCount tempCloneToken updatedAt url usesCustomOpenGraphImage viewerCanAdminister viewerCanCreateIssues viewerCanSeeIssueFields viewerCanSubscribe viewerCanUpdateTopics viewerDefaultCommitEmail viewerDefaultMergeMethod viewerHasStarred viewerPermission viewerPossibleCommitEmails viewerSubscription visibility webCommitSignoffRequired"
+        run: |
+          set +e
+          python3 - <<'EOF' > /tmp/q.json
+          import json, os
+          fields = os.environ["FLIST"].split()
+          q = "{" + " ".join('a%d: repository(owner:"f82-poc-org",name:"blocked-repo"){%s}' % (i,f) for i,f in enumerate(fields)) + "}"
+          print(json.dumps({"query": q}))
+          EOF
+          head -c 120 /tmp/q.json; echo
+          echo "=== RESPONSE ==="
+          curl -s -H "Authorization: bearer $TK" -H "Content-Type: application/json" \
+            --data-binary @/tmp/q.json https://api.github.com/graphql
+          echo
