@@ -1,0 +1,19 @@
+name: orgfields2
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+        run: |
+          set +e
+          cat > /tmp/q.json <<'EOF'
+{"query":"{a0: organization(login:\"f82-poc-org\"){anyPinnableItems} a1: organization(login:\"f82-poc-org\"){archivedAt} a2: organization(login:\"f82-poc-org\"){avatarUrl} a3: organization(login:\"f82-poc-org\"){createdAt} a4: organization(login:\"f82-poc-org\"){databaseId} a5: organization(login:\"f82-poc-org\"){description} a6: organization(login:\"f82-poc-org\"){descriptionHTML} a7: organization(login:\"f82-poc-org\"){email} a8: organization(login:\"f82-poc-org\"){estimatedNextSponsorsPayoutInCents} a9: organization(login:\"f82-poc-org\"){hasSponsorsListing} a10: organization(login:\"f82-poc-org\"){id} a11: organization(login:\"f82-poc-org\"){ipAllowListEnabledSetting} a12: organization(login:\"f82-poc-org\"){ipAllowListForInstalledAppsEnabledSetting} a13: organization(login:\"f82-poc-org\"){isSponsoringViewer} a14: organization(login:\"f82-poc-org\"){isVerified} a15: organization(login:\"f82-poc-org\"){location} a16: organization(login:\"f82-poc-org\"){login} a17: organization(login:\"f82-poc-org\"){membersCanForkPrivateRepositories} a18: organization(login:\"f82-poc-org\"){monthlyEstimatedSponsorsIncomeInCents} a19: organization(login:\"f82-poc-org\"){name} a20: organization(login:\"f82-poc-org\"){newTeamResourcePath} a21: organization(login:\"f82-poc-org\"){newTeamUrl} a22: organization(login:\"f82-poc-org\"){notificationDeliveryRestrictionEnabledSetting} a23: organization(login:\"f82-poc-org\"){organizationBillingEmail} a24: organization(login:\"f82-poc-org\"){pinnedItemsRemaining} a25: organization(login:\"f82-poc-org\"){projectsResourcePath} a26: organization(login:\"f82-poc-org\"){projectsUrl} a27: organization(login:\"f82-poc-org\"){requiresTwoFactorAuthentication} a28: organization(login:\"f82-poc-org\"){resourcePath} a29: organization(login:\"f82-poc-org\"){teamsResourcePath} a30: organization(login:\"f82-poc-org\"){teamsUrl} a31: organization(login:\"f82-poc-org\"){totalSponsorshipAmountAsSponsorInCents} a32: organization(login:\"f82-poc-org\"){twitterUsername} a33: organization(login:\"f82-poc-org\"){updatedAt} a34: organization(login:\"f82-poc-org\"){url} a35: organization(login:\"f82-poc-org\"){viewerCanAdminister} a36: organization(login:\"f82-poc-org\"){viewerCanChangePinnedItems} a37: organization(login:\"f82-poc-org\"){viewerCanCreateRepositories} a38: organization(login:\"f82-poc-org\"){viewerCanCreateTeams} a39: organization(login:\"f82-poc-org\"){viewerCanSponsor} a40: organization(login:\"f82-poc-org\"){viewerIsAMember} a41: organization(login:\"f82-poc-org\"){viewerIsFollowing} a42: organization(login:\"f82-poc-org\"){viewerIsSponsoring} a43: organization(login:\"f82-poc-org\"){webCommitSignoffRequired} a44: organization(login:\"f82-poc-org\"){websiteUrl}}"}
+EOF
+          echo "=== BOT per-field org read (aliased so failures are independent) ==="
+          curl -s -H "Authorization: bearer $TK" -H "Content-Type: application/json" \
+            --data-binary @/tmp/q.json https://api.github.com/graphql > /tmp/r.json
+          wc -c /tmp/r.json
+          cat /tmp/r.json
