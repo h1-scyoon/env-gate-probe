@@ -1,0 +1,10 @@
+name: cachesave
+on: pull_request
+jobs:
+  s:
+    runs-on: ubuntu-latest
+    steps:
+      - run: mkdir -p d && echo "FORKPR-POISON-c55e" > d/marker.txt
+      - uses: actions/cache@v4
+        with: {path: d, key: forkshared-key-v1}
+      - run: echo "saved from ref=$GITHUB_REF head=$GITHUB_HEAD_REF"
