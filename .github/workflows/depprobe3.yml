@@ -1,0 +1,17 @@
+name: depprobe3
+on: workflow_dispatch
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - env:
+          TK: ${{ github.token }}
+        run: |
+          set +e
+          curl -s -H "Authorization: token $TK" https://api.github.com/repos/h1-scyoon/env-gate-probe/issues/4/dependencies/blocked_by > /tmp/d.json
+          echo "BYTES=$(wc -c < /tmp/d.json)"
+          echo "DEPSECRET_COUNT=$(grep -c DEPSECRET /tmp/d.json)"
+          echo "depsecret_repo_COUNT=$(grep -c "h1-scyoon/depsecret" /tmp/d.json)"
+          echo "PUBDEP_COUNT=$(grep -c PUBDEP /tmp/d.json)"
+          echo "ENTRY_COUNT=$(grep -c "\"number\":" /tmp/d.json)"
